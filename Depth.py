@@ -2,8 +2,8 @@
 import cv2
 import numpy as np
 import stereoconfig  # 导入相机标定的参数
-#import pcl
-#import pcl.pcl_visualization
+import pcl
+import pcl.pcl_visualization
 
 
 # 预处理
@@ -195,47 +195,48 @@ def view_cloud(pointcloud):
 
 if __name__ == '__main__':
 
-    i = 0
-    string = 're'
-    # 读取数据集的图片
-    iml = cv2.imread('/home/eaibot71/test1/photo_all/left/%sLeft%d.bmp' % (string, i))  # 左图
-    imr = cv2.imread('/home/eaibot71/test1/photo_all/right/%sRight%d.bmp' % (string, i))  # 右图
-    height, width = iml.shape[0:2]
+    for i in range(1, 21):
+        #i = 1
+        string = 're'
+        # 读取数据集的图片
+        iml = cv2.imread('/home/eaibot71/test1/photo_all/left/%sLeft%d.bmp' % (string, i))  # 左图
+        imr = cv2.imread('/home/eaibot71/test1/photo_all/right/%sRight%d.bmp' % (string, i))  # 右图
+        height, width = iml.shape[0:2]
 
-    print("width = %d \n" % width)
-    print("height = %d \n" % height)
+        print("width = %d \n" % width)
+        print("height = %d \n" % height)
 
-    # 读取相机内参和外参
-    config = stereoconfig.stereoCamera()
+        # 读取相机内参和外参
+        config = stereoconfig.stereoCamera()
 
-    # 立体校正
-    map1x, map1y, map2x, map2y, Q = getRectifyTransform(height, width, config)  # 获取用于畸变校正和立体校正的映射矩阵以及用于计算像素空间坐标的重投影矩阵
-    iml_rectified, imr_rectified = rectifyImage(iml, imr, map1x, map1y, map2x, map2y)
+        # 立体校正
+        map1x, map1y, map2x, map2y, Q = getRectifyTransform(height, width, config)  # 获取用于畸变校正和立体校正的映射矩阵以及用于计算像素空间坐标的重投影矩阵
+        iml_rectified, imr_rectified = rectifyImage(iml, imr, map1x, map1y, map2x, map2y)
 
-    print("Print Q!")
-    print(Q)
+        print("Print Q!")
+        print(Q)
 
-    # 绘制等间距平行线，检查立体校正的效果
-    line = draw_line(iml_rectified, imr_rectified)
-    cv2.imwrite('/home/eaibot71/test1/test_depth/%s检验%d.png' % (string, i), line)
+        # 绘制等间距平行线，检查立体校正的效果
+        line = draw_line(iml_rectified, imr_rectified)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/%s检验%d.png' % (string, i), line)
 
-    # 消除畸变
-    iml = undistortion(iml, config.cam_matrix_left, config.distortion_l)
-    imr = undistortion(imr, config.cam_matrix_right, config.distortion_r)
+        # 消除畸变
+        iml = undistortion(iml, config.cam_matrix_left, config.distortion_l)
+        imr = undistortion(imr, config.cam_matrix_right, config.distortion_r)
 
-    # 立体匹配
-    iml_, imr_ = preprocess(iml, imr)  # 预处理，一般可以削弱光照不均的影响，不做也可以
+        # 立体匹配
+        iml_, imr_ = preprocess(iml, imr)  # 预处理，一般可以削弱光照不均的影响，不做也可以
 
-    iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
+        iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
 
-    disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
-    cv2.imwrite('/home/eaibot71/test1/test_depth/%s视差%d.png' % (string, i), disp)
+        disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/%s视差%d.png' % (string, i), disp)
 
-    # 计算像素点的3D坐标（左相机坐标系下）
-    points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
+        # 计算像素点的3D坐标（左相机坐标系下）
+        points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
 
 
-    # points_3d = points_3d
+        # points_3d = points_3d
 
     # 鼠标点击事件
     def onMouse(event, x, y, flags, param):
@@ -256,7 +257,7 @@ if __name__ == '__main__':
     pointcloud = DepthColor2Cloud(points_3d, iml)
 
     # 显示点云
-  #  view_cloud(pointcloud)
+    view_cloud(pointcloud)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

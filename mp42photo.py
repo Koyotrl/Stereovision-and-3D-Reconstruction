@@ -7,7 +7,7 @@ import numpy as np
 # addr；图片地址与相片名字的前部分
 # num: 相片，名字的后缀。int 类型
 def save_image(image, addr, num):
-        address = addr + str(num) + '.jpg'
+        address = addr + str(num) + '.bmp'
         cv2.imwrite(address, image)
 
 # 读取视频文件 视频文件路径
@@ -21,9 +21,10 @@ i = 0
 timeF = 1
 j = 0
 while success:
-    i = i + 1
+
     if (i % timeF == 0):
         j = j + 1
-        save_image(frame, '/home/eaibot71/test1/photo_video', j) #视频截成图片存放的位置
+        save_image(frame, '/home/eaibot71/test1/photo_video/', j) #视频截成图片存放的位置
         print('save image:', i)
+        i = i + 1
     success, frame = videoCapture.read()

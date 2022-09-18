@@ -3,9 +3,9 @@ import cv2
 
 # img1 = cv2.imread(r"/Users/inbc/Desktop/zuo/Left1.bmp")
 # img2 = cv2.imread(r"/Users/inbc/Desktop/you/Right1.bmp")
-for i in range(0, 2):
+for i in range(1, 21):
     # imgT = cv2.imdecode(np.fromfile('./images/%d.bmp'  %i ,dtype=np.uint8), -1)
-    imgT = cv2.imdecode(np.fromfile('/home/eaibot71/test1/photo_all/all/%d.bmp' % i, dtype=np.uint8), -1)  # 读取拍摄的左右双目照片
+    imgT = cv2.imdecode(np.fromfile('/home/eaibot71/test1/photo_video/%d.bmp' % i, dtype=np.uint8), -1)  # 读取拍摄的左右双目照片
 
     # cv2.imshow("zuo", img1[300:1200, 500:2000])
     # cv2.imshow("you", img2[300:1200, 500:2000])
