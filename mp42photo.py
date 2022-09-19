@@ -11,7 +11,7 @@ def save_image(image, addr, num):
         cv2.imwrite(address, image)
 
 # 读取视频文件 视频文件路径
-videoCapture = cv2.VideoCapture("/home/eaibot71/test1/output.mp4")
+videoCapture = cv2.VideoCapture("/home/eaibot71/test1/photo_video/output.mp4")
 # 通过摄像头的方式
 # videoCapture=cv2.VideoCapture(1)
  

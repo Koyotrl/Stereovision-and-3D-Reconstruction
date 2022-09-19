@@ -195,7 +195,7 @@ def view_cloud(pointcloud):
 
 if __name__ == '__main__':
 
-    for i in range(1, 21):
+    for i in range(1, 53):
         #i = 1
         string = 're'
         # 读取数据集的图片
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
         # 绘制等间距平行线，检查立体校正的效果
         line = draw_line(iml_rectified, imr_rectified)
-        cv2.imwrite('/home/eaibot71/test1/test_depth/%s检验%d.png' % (string, i), line)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/check/%s检验%d.png' % (string, i), line)
 
         # 消除畸变
         iml = undistortion(iml, config.cam_matrix_left, config.distortion_l)
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
 
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
-        cv2.imwrite('/home/eaibot71/test1/test_depth/%s视差%d.png' % (string, i), disp)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
 
         # 计算像素点的3D坐标（左相机坐标系下）
         points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数

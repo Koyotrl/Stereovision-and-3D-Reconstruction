@@ -22,7 +22,8 @@ while True:
 
         # r若按下w则保存一张照片
         if c == ord("w"):
-            cv2.imwrite("/home/eaibot71/test1/photo_all/all/%d.bmp" % i, frame)  # 自己设置拍摄的照片的存储位置
+            cv2.imwrite("/home/eaibot71/test1/checkerboard/all/%d.bmp" % i, frame)  # 将照片保存至棋盘格文件夹中
+            #cv2.imwrite("/home/eaibot71/test1/photo_all/all/%d.bmp" % i, frame)  # 将照片保存至所有照片文件夹中
             print("Save images %d succeed!" % i)
             i += 1
 
