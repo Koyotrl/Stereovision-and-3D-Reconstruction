@@ -20,7 +20,7 @@ while(cap.isOpened()):
         out.write(frame)
 
         cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'): # 若按下Q键，则退出循环
             break
     else:
         break
