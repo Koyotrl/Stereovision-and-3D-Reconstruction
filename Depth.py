@@ -237,9 +237,24 @@ if __name__ == '__main__':
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
 
-        src = cv2.imread("/home/eaibot71/test1/test_depth/depth/%sdepth%d.png" % (string, i))
-        img = cv2.resize(src,None,fx=0.8,fy=0.8,interpolation=cv2.INTER_CUBIC)
-        cv2.imwrite('/home/eaibot71/test1/test_depth/depth_filter/%sdepth%d.png' % (string, i), disp)
+        #图像的腐蚀膨胀
+        img = cv2.imread('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i))
+        kernel1 = np.ones((10,10),np.uint8)
+        kernel2 = np.ones((10,10),np.uint8)
+
+        imgGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        imgBlur = cv2.GaussianBlur(imgGray,(5,5),0)
+        imgCanny = cv2.Canny(imgBlur,50,100)
+
+        imgDialation = cv2.dilate(imgGray,kernel1,iterations=10)  #膨胀
+        imgEroded = cv2.erode(imgDialation,kernel2,iterations=10)  #腐蚀
+
+        cv2.imwrite('/home/eaibot71/test1/test_depth/depth_de/%sdepth%d.png' % (string, i), disp)
+
+        # 中值模糊 将图片保存在depth_filter
+        # src = cv2.imread("/home/eaibot71/test1/test_depth/depth/%sdepth%d.png" % (string, i))
+        # img = cv2.resize(src,None,fx=0.8,fy=0.8,interpolation=cv2.INTER_CUBIC)
+        # cv2.imwrite('/home/eaibot71/test1/test_depth/depth_filter/%sdepth%d.png' % (string, i), disp)
 
         # 计算像素点的3D坐标（左相机坐标系下）
         points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
