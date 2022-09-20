@@ -192,10 +192,15 @@ def view_cloud(pointcloud):
     except:
         pass
 
+def median_blur_demo(image):    # 中值模糊  对椒盐噪声有很好的去燥效果
+    dst = cv2.medianBlur(image, 5)
+    cv2.imshow("median_blur_demo", dst)
+
+
 
 if __name__ == '__main__':
 
-    for i in range(1, 53):
+    for i in range(1, 94):
         #i = 1
         string = 're'
         # 读取数据集的图片
@@ -203,8 +208,8 @@ if __name__ == '__main__':
         imr = cv2.imread('/home/eaibot71/test1/photo_all/right/%sRight%d.bmp' % (string, i))  # 右图
         height, width = iml.shape[0:2]
 
-        print("width = %d \n" % width)
-        print("height = %d \n" % height)
+        # print("width = %d \n" % width)
+        # print("height = %d \n" % height)
 
         # 读取相机内参和外参
         config = stereoconfig.stereoCamera()
@@ -213,12 +218,12 @@ if __name__ == '__main__':
         map1x, map1y, map2x, map2y, Q = getRectifyTransform(height, width, config)  # 获取用于畸变校正和立体校正的映射矩阵以及用于计算像素空间坐标的重投影矩阵
         iml_rectified, imr_rectified = rectifyImage(iml, imr, map1x, map1y, map2x, map2y)
 
-        print("Print Q!")
-        print(Q)
+        # print("Print Q!")
+        # print(Q)
 
         # 绘制等间距平行线，检查立体校正的效果
         line = draw_line(iml_rectified, imr_rectified)
-        cv2.imwrite('/home/eaibot71/test1/test_depth/check/%s检验%d.png' % (string, i), line)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/check/%scheck%d.png' % (string, i), line)
 
         # 消除畸变
         iml = undistortion(iml, config.cam_matrix_left, config.distortion_l)
@@ -231,6 +236,10 @@ if __name__ == '__main__':
 
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
+
+        src = cv2.imread("/home/eaibot71/test1/test_depth/depth/%sdepth%d.png" % (string, i))
+        img = cv2.resize(src,None,fx=0.8,fy=0.8,interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/depth_filter/%sdepth%d.png' % (string, i), disp)
 
         # 计算像素点的3D坐标（左相机坐标系下）
         points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
@@ -246,7 +255,7 @@ if __name__ == '__main__':
             dis = ((points_3d[y, x, 0] ** 2 + points_3d[y, x, 1] ** 2 + points_3d[y, x, 2] ** 2) ** 0.5) / 1000
             print('点 (%d, %d) 距离左摄像头的相对距离为 %0.3f m' % (x, y, dis))
 
-        # 显示图片
+    # 显示图片
 
 
     cv2.namedWindow("disparity", 0)

@@ -36,9 +36,9 @@ print(size)
 
 fourcc=cv2.VideoWriter_fourcc(*'mp4v')
 
-videoWrite = cv2.VideoWriter('/home/eaibot71/test1/result.mp4',fourcc,5,size)# 写入对象：1.fileName  2.-1：表示选择合适的编码器  3.视频的帧率  4.视频的size
-for i in range(1,52):
-    fileName = '/home/eaibot71/test1/test_depth/depth/redepth'+ str(i) + '.png'
+videoWrite = cv2.VideoWriter('/home/eaibot71/test1/result.mp4',fourcc,6,size)# 写入对象：1.fileName  2.-1：表示选择合适的编码器  3.视频的帧率  4.视频的size
+for i in range(1,93):
+    fileName = '/home/eaibot71/test1/test_depth/depth_filter/redepth'+ str(i) + '.png'
     img = cv2.imread(fileName)
     videoWrite.write(img)# 写入方法  1.编码之前的图片数据
 print('end!')

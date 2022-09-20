@@ -3,7 +3,7 @@ import cv2
 
 # img1 = cv2.imread(r"/Users/inbc/Desktop/zuo/Left1.bmp")
 # img2 = cv2.imread(r"/Users/inbc/Desktop/you/Right1.bmp")
-for i in range(1, 53):
+for i in range(1, 95):
     # imgT = cv2.imdecode(np.fromfile('./images/%d.bmp'  %i ,dtype=np.uint8), -1)
     imgT = cv2.imdecode(np.fromfile('/home/eaibot71/test1/photo_video/%d.bmp' % i, dtype=np.uint8), -1)  # 读取拍摄的左右双目照片
     #imgT = cv2.imdecode(np.fromfile('/home/eaibot71/test1/checkerboard/%d.bmp' % i, dtype=np.uint8), -1)  # 读取拍摄的左右双目照片
