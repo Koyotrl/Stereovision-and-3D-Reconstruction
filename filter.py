@@ -30,13 +30,6 @@ cv2.destroyAllWindows()
 
 
 
-
-
-
-
-
-
-
 # import cv2
 # import math
 # import os
