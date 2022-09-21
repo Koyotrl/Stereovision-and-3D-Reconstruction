@@ -62,11 +62,12 @@ def wlsFilter(img, Lambda, alpha=1.2, eps=0.0001):
 
     return out
 
-img = cv2.imread(r'C:\Users\x\Desktop\k2.jpg', cv2.IMREAD_ANYCOLOR)
+img = cv2.imread('/home/eaibot71/test1/test_depth/depth/redepth1.png', cv2.IMREAD_ANYCOLOR)
 
 m = np.double(img)
-
-b, g, r = cv2.split(m)
+b = cv2.split(m)
+g = cv2.split(m)
+r = cv2.split(m)
 
 ib = np.array(b)
 p1,q1 = ib.shape[:2]
@@ -95,6 +96,6 @@ wls = cv2.merge([wls1, wls2, wls3])
 
 cv2.imshow('image', img)
 cv2.imshow('filter', wls)
-cv2.imwrite(r'C:\Users\x\Desktop\18.jpg', wls)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()

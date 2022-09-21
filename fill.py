@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import scipy as sp
 import scipy.ndimage
@@ -15,3 +16,6 @@ def fill(test_array,h_max=255):
         output_old_array = np.copy(output_array)
         output_array = np.maximum(input_array,sp.ndimage.grey_erosion(output_array, size=(3,3), footprint=el))
     return output_array
+
+
+

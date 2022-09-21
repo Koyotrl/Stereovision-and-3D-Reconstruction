@@ -84,16 +84,16 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
     else:
         img_channels = 3
     blockSize = 3
-    paraml = {'minDisparity': 0,
-              'numDisparities': 64,
+    paraml = {'minDisparity': 0,                        #最小视差
+              'numDisparities': 64,                     #视差的搜索范围，16的整数倍
               'blockSize': blockSize,
-              'P1': 8 * img_channels * blockSize ** 2,
-              'P2': 32 * img_channels * blockSize ** 2,
-              'disp12MaxDiff': 1,
-              'preFilterCap': 63,
-              'uniquenessRatio': 15,
-              'speckleWindowSize': 100,
-              'speckleRange': 1,
+              'P1': 8 * img_channels * blockSize ** 2,  #值越大，视差越平滑，相邻像素视差+/-1的惩罚系数
+              'P2': 32 * img_channels * blockSize ** 2, #同上，相邻像素视差变化值>1的惩罚系数
+              'disp12MaxDiff': 1,                       #左右一致性检测中最大容许误差值
+              'preFilterCap': 63,                       #映射滤波器大小，默认15
+              'uniquenessRatio': 15,                    #唯一检测性参数，匹配区分度不够，则误匹配(5-15)
+              'speckleWindowSize': 100,                 #视差连通区域像素点个数的大小（噪声点）(50-200)或用0禁用斑点过滤
+              'speckleRange': 1,                        #认为不连通(1-2)
               'mode': cv2.STEREO_SGBM_MODE_SGBM_3WAY
               }
 
@@ -126,6 +126,51 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
     trueDisp_right = disparity_right.astype(np.float32) / 16.
 
     return trueDisp_left, trueDisp_right
+
+
+def wls_filter(left_image, right_image):
+    #wls_filter
+    if left_image.ndim == 2:
+        img_channels = 1
+    else:
+        img_channels = 3
+    blockSize = 3
+
+
+    paraml = {
+    'preFilterCap': 63,     #映射滤波器大小，默认15
+    "minDisparity" : 0,    #最小视差
+    "numDisparities" : 64,    #视差的搜索范围，16的整数倍
+    "blockSize" : blockSize,
+    "uniquenessRatio" : 15,     #唯一检测性参数，匹配区分度不够，则误匹配(5-15)
+    "speckleWindowSize" : 100,      #视差连通区域像素点个数的大小（噪声点）(50-200)或用0禁用斑点过滤
+    "speckleRange" : 1,             #认为不连通(1-2)
+    "disp12MaxDiff" : 1,        #左右一致性检测中最大容许误差值
+    "P1" : 8 * img_channels * blockSize** 2,   #值越大，视差越平滑，相邻像素视差+/-1的惩罚系数
+    "P2" : 32 * img_channels * blockSize** 2,  #同上，相邻像素视差变化值>1的惩罚系数
+    # 'mode': cv2.STEREO_SGBM_MODE_SGBM_3WAY
+    }
+
+    ## 开始计算深度图
+    left_matcher = cv2.StereoSGBM_create(**paraml)
+    paramr = paraml
+    paramr['minDisparity'] = -paraml['numDisparities']
+    right_matcher = cv2.StereoSGBM_create(**paramr)
+
+    left_disp = left_matcher.compute(left_image, right_image)
+    right_disp = right_matcher.compute(right_image, left_image)
+    wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
+    # sigmaColor典型范围值为0.8-2.0
+    wls_filter.setLambda(8000.)
+    wls_filter.setSigmaColor(0.8)
+    wls_filter.setLRCthresh(24)
+    wls_filter.setDepthDiscontinuityRadius(3)
+
+    filtered_disp = wls_filter.filter(left_disp, left_image, disparity_map_right=right_disp)
+
+    disp2 = cv2.normalize(filtered_disp, filtered_disp, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+    return disp2
 
 
 # 将h×w×3数组转换为N×3的数组
@@ -259,6 +304,9 @@ if __name__ == '__main__':
 
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
+
+        disp2 = wls_filter(iml_rectified_l, imr_rectified_r)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/depth_wls/%sdepth%d.png' % (string, i), disp2)
 
 
         #图像的腐蚀膨胀
