@@ -136,7 +136,6 @@ def wls_filter(left_image, right_image):
         img_channels = 3
     blockSize = 3
 
-
     paraml = {
     'preFilterCap': 63,     #映射滤波器大小，默认15
     "minDisparity" : 0,    #最小视差
@@ -305,7 +304,10 @@ if __name__ == '__main__':
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
 
-        disp2 = wls_filter(iml_rectified_l, imr_rectified_r)
+
+
+        #wls_filter
+        disp2 = wls_filter(iml, imr)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth_wls/%sdepth%d.png' % (string, i), disp2)
 
 
@@ -359,7 +361,7 @@ if __name__ == '__main__':
     pointcloud = DepthColor2Cloud(points_3d, iml)
 
     # 显示点云
-    view_cloud(pointcloud)
+    #view_cloud(pointcloud)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
