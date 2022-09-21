@@ -85,7 +85,7 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
         img_channels = 3
     blockSize = 3
     paraml = {'minDisparity': 0,
-              'numDisparities': 128,
+              'numDisparities': 64,
               'blockSize': blockSize,
               'P1': 8 * img_channels * blockSize ** 2,
               'P2': 32 * img_channels * blockSize ** 2,
@@ -192,6 +192,29 @@ def view_cloud(pointcloud):
     except:
         pass
 
+
+# 利用opencv函数计算深度图
+def getDepthMapWithQ(disparityMap : np.ndarray, Q : np.ndarray) -> np.ndarray:
+    points_3d = cv2.reprojectImageTo3D(disparityMap, Q)
+    depthMap = points_3d[:, :, 2]
+    reset_index = np.where(np.logical_or(depthMap < 0.0, depthMap > 65535.0))
+    depthMap[reset_index] = 0
+
+    return depthMap.astype(np.float32)
+
+# 根据公式计算深度图
+def getDepthMapWithConfig(disparityMap : np.ndarray, config : stereoconfig.stereoCamera) -> np.ndarray:
+    fb = config.cam_matrix_left[0, 0] * (-config.T[0])
+    doffs = config.doffs
+    depthMap = np.divide(fb, disparityMap + doffs)
+    reset_index = np.where(np.logical_or(depthMap < 0.0, depthMap > 65535.0))
+    depthMap[reset_index] = 0
+    reset_index2 = np.where(disparityMap < 0.0)
+    depthMap[reset_index2] = 0
+    return depthMap.astype(np.float32)
+
+
+
 def median_blur_demo(image):    # 中值模糊  对椒盐噪声有很好的去燥效果
     dst = cv2.medianBlur(image, 5)
     cv2.imshow("median_blur_demo", dst)
@@ -237,28 +260,35 @@ if __name__ == '__main__':
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
 
+
         #图像的腐蚀膨胀
         img = cv2.imread('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i))
-        kernel1 = np.ones((10,10),np.uint8)
-        kernel2 = np.ones((10,10),np.uint8)
+        kernel1 = np.ones((15,15),np.uint8)
+        kernel2 = np.ones((7,7),np.uint8)
+        kernel3 = np.ones((5,5),np.uint8)
+        kernel4 = np.ones((10,10),np.uint8)
 
         imgGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         imgBlur = cv2.GaussianBlur(imgGray,(5,5),0)
         imgCanny = cv2.Canny(imgBlur,50,100)
 
-        imgDialation = cv2.dilate(imgGray,kernel1,iterations=10)  #膨胀
+        imgDialation = cv2.dilate(imgGray,kernel1,iterations=10)  #膨胀 闭运算
         imgEroded = cv2.erode(imgDialation,kernel2,iterations=10)  #腐蚀
-
+        imgEroded2 = cv2.erode(imgEroded,kernel3,iterations=1)  #腐蚀 开运算
+        imgDialation2 = cv2.dilate(imgEroded2,kernel4,iterations=1)  #膨胀
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth_de/%sdepth%d.png' % (string, i), disp)
+
 
         # 中值模糊 将图片保存在depth_filter
         # src = cv2.imread("/home/eaibot71/test1/test_depth/depth/%sdepth%d.png" % (string, i))
         # img = cv2.resize(src,None,fx=0.8,fy=0.8,interpolation=cv2.INTER_CUBIC)
         # cv2.imwrite('/home/eaibot71/test1/test_depth/depth_filter/%sdepth%d.png' % (string, i), disp)
 
+
         # 计算像素点的3D坐标（左相机坐标系下）
         points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
 
+        print('image done:', i)
 
         # points_3d = points_3d
 
