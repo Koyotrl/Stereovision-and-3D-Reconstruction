@@ -127,9 +127,70 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
 
     return trueDisp_left, trueDisp_right
 
+# 视差计算+wls滤波
+def stereoMatchSGBM2(left_image, right_image, down_scale=False):
+    # SGBM匹配参数设置
+    if left_image.ndim == 2:
+        img_channels = 1
+    else:
+        img_channels = 3
+    blockSize = 3
+    paraml = {'minDisparity': 0,                        #最小视差
+              'numDisparities': 64,                     #视差的搜索范围，16的整数倍
+              'blockSize': blockSize,
+              'P1': 8 * img_channels * blockSize ** 2,  #值越大，视差越平滑，相邻像素视差+/-1的惩罚系数
+              'P2': 32 * img_channels * blockSize ** 2, #同上，相邻像素视差变化值>1的惩罚系数
+              'disp12MaxDiff': 1,                       #左右一致性检测中最大容许误差值
+              'preFilterCap': 63,                       #映射滤波器大小，默认15
+              'uniquenessRatio': 15,                    #唯一检测性参数，匹配区分度不够，则误匹配(5-15)
+              'speckleWindowSize': 100,                 #视差连通区域像素点个数的大小（噪声点）(50-200)或用0禁用斑点过滤
+              'speckleRange': 1,                        #认为不连通(1-2)
+              'mode': cv2.STEREO_SGBM_MODE_SGBM_3WAY
+              }
 
+    # 构建SGBM对象
+    left_matcher = cv2.StereoSGBM_create(**paraml)
+    paramr = paraml
+    paramr['minDisparity'] = -paraml['numDisparities']
+    right_matcher = cv2.StereoSGBM_create(**paramr)
+
+    # 计算视差图
+    size = (left_image.shape[1], left_image.shape[0])
+    if down_scale == False:
+        disparity_left = left_matcher.compute(left_image, right_image)
+        disparity_right = right_matcher.compute(right_image, left_image)
+
+    else:
+        left_image_down = cv2.pyrDown(left_image)
+        right_image_down = cv2.pyrDown(right_image)
+        factor = left_image.shape[1] / left_image_down.shape[1]
+
+        disparity_left_half = left_matcher.compute(left_image_down, right_image_down)
+        disparity_right_half = right_matcher.compute(right_image_down, left_image_down)
+        disparity_left = cv2.resize(disparity_left_half, size, interpolation=cv2.INTER_AREA)
+        disparity_right = cv2.resize(disparity_right_half, size, interpolation=cv2.INTER_AREA)
+        disparity_left = factor * disparity_left
+        disparity_right = factor * disparity_right
+
+    # 真实视差（因为SGBM算法得到的视差是×16的）
+    trueDisp_left = disparity_left.astype(np.float32) / 16.
+    trueDisp_right = disparity_right.astype(np.float32) / 16.
+
+    wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
+    # sigmaColor典型范围值为0.8-2.0
+    wls_filter.setLambda(8000.)
+    wls_filter.setSigmaColor(2.0)
+    wls_filter.setLRCthresh(24)
+    wls_filter.setDepthDiscontinuityRadius(3)
+    filtered_disp = wls_filter.filter(trueDisp_left, left_image, disparity_map_right=trueDisp_right)
+    disp22 = cv2.normalize(filtered_disp, filtered_disp, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+    return disp22
+
+
+# wls_filter
 def wls_filter(left_image, right_image):
-    #wls_filter
+
     if left_image.ndim == 2:
         img_channels = 1
     else:
@@ -160,10 +221,10 @@ def wls_filter(left_image, right_image):
     right_disp = right_matcher.compute(right_image, left_image)
     wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
     # sigmaColor典型范围值为0.8-2.0
-    wls_filter.setLambda(8000.)
+    wls_filter.setLambda(4000.)
     wls_filter.setSigmaColor(0.8)
     wls_filter.setLRCthresh(24)
-    wls_filter.setDepthDiscontinuityRadius(3)
+    wls_filter.setDepthDiscontinuityRadius(1)
 
     filtered_disp = wls_filter.filter(left_disp, left_image, disparity_map_right=right_disp)
 
@@ -267,7 +328,7 @@ def median_blur_demo(image):    # 中值模糊  对椒盐噪声有很好的去�
 
 if __name__ == '__main__':
 
-    for i in range(1, 94):
+    for i in range(1, 125):
         #i = 1
         string = 're'
         # 读取数据集的图片
@@ -304,11 +365,13 @@ if __name__ == '__main__':
         disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth/%sdepth%d.png' % (string, i), disp)
 
-
-
         #wls_filter
         disp2 = wls_filter(iml, imr)
         cv2.imwrite('/home/eaibot71/test1/test_depth/depth_wls/%sdepth%d.png' % (string, i), disp2)
+
+        disp22 = stereoMatchSGBM2(iml_, imr_, True)
+        cv2.imwrite('/home/eaibot71/test1/test_depth/wls/%sdepth%d.png' % (string, i), disp22)
+
 
 
         #图像的腐蚀膨胀

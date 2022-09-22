@@ -10,7 +10,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-out = cv2.VideoWriter('/home/eaibot71/test1/photo_video/output.mp4',fourcc, 6.0, (width,height))
+out = cv2.VideoWriter('/home/eaibot71/test1/photo_video/output.mp4',fourcc, 5.0, (width,height))
 
 while(cap.isOpened()):
     ret, frame = cap.read()
