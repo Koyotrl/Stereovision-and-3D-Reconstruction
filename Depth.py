@@ -424,7 +424,7 @@ if __name__ == '__main__':
     pointcloud = DepthColor2Cloud(points_3d, iml)
 
     # 显示点云
-    #view_cloud(pointcloud)
+    view_cloud(pointcloud)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
