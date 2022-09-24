@@ -413,15 +413,18 @@ if __name__ == '__main__':
             dis = ((points_3d[y, x, 0] ** 2 + points_3d[y, x, 1] ** 2 + points_3d[y, x, 2] ** 2) ** 0.5) / 1000
             print('点 (%d, %d) 距离左摄像头的相对距离为 %0.3f m' % (x, y, dis))
 
-    # 显示图片
-
-
-    cv2.namedWindow("disparity", 0)
-    cv2.imshow("disparity", disp)
-    cv2.setMouseCallback("disparity", onMouse, 0)
+    # 计算像素点的3D坐标（左相机坐标系下）
+    points_3d = cv2.reprojectImageTo3D(disp, Q)  # 可以使用上文的stereo_config.py给出的参数
 
     # 构建点云--Point_XYZRGBA格式
     pointcloud = DepthColor2Cloud(points_3d, iml)
+
+
+
+    # 显示图片
+    cv2.namedWindow("disparity", 0)
+    cv2.imshow("disparity", disp)
+    cv2.setMouseCallback("disparity", onMouse, 0)
 
     # 显示点云
     view_cloud(pointcloud)
